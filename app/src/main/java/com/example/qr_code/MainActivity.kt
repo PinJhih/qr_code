@@ -13,7 +13,7 @@ class MainActivity : AppCompatActivity() {
 
         tabs.addTab(tabs.newTab().setText("產生QR Code"))
         tabs.addTab(tabs.newTab().setText("掃描QR Code"))
-        viewpager.adapter = ViewPagerAdapter()
+        viewpager.adapter = ViewPagerAdapter(supportFragmentManager)
         viewpager.addOnPageChangeListener(TabLayout.TabLayoutOnPageChangeListener(tabs))
         tabs.addOnTabSelectedListener(TabLayout.ViewPagerOnTabSelectedListener(viewpager))
     }
