@@ -23,16 +23,23 @@ class GenerateFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         btn_convert.setOnClickListener {
-            if(ed_input.text.isEmpty())
+            if (ed_input.text.isEmpty())
                 Toast.makeText(context, "請輸入文字", Toast.LENGTH_SHORT).show()
             else
                 generateQRCode(ed_input.text.toString())
         }
     }
 
+    private fun imgSize(): Int {
+        resources.displayMetrics.let { displayMetrics ->
+            val width = displayMetrics.widthPixels
+            return (width*0.9).toInt()
+        }
+    }
+
     private fun generateQRCode(text: String) {
         val writer = QRCodeWriter()
-        val bitMatrix = writer.encode(text, BarcodeFormat.QR_CODE, 512, 512)
+        val bitMatrix = writer.encode(text, BarcodeFormat.QR_CODE, imgSize(), imgSize())
         val width = bitMatrix.width
         val height = bitMatrix.height
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
