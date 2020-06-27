@@ -25,21 +25,25 @@ class GenerateFragment : Fragment() {
         btn_convert.setOnClickListener {
             if (ed_input.text.isEmpty())
                 Toast.makeText(context, "請輸入文字", Toast.LENGTH_SHORT).show()
-            else
-                generateQRCode(ed_input.text.toString())
+            else {
+                val size = (screenSize() * 0.9).toInt()
+                img_qr_code.setImageBitmap(
+                    generateQRCode(size)
+                )
+            }
         }
     }
 
-    private fun imgSize(): Int {
+    private fun screenSize(): Int {
         resources.displayMetrics.let { displayMetrics ->
-            val width = displayMetrics.widthPixels
-            return (width*0.9).toInt()
+            return displayMetrics.widthPixels
         }
     }
 
-    private fun generateQRCode(text: String) {
+    private fun generateQRCode(size: Int): Bitmap {
+        val url = "${ed_input.text}"
         val writer = QRCodeWriter()
-        val bitMatrix = writer.encode(text, BarcodeFormat.QR_CODE, imgSize(), imgSize())
+        val bitMatrix = writer.encode(url, BarcodeFormat.QR_CODE, size, size)
         val width = bitMatrix.width
         val height = bitMatrix.height
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
@@ -48,6 +52,6 @@ class GenerateFragment : Fragment() {
                 bitmap.setPixel(x, y, if (bitMatrix.get(x, y)) Color.BLACK else Color.WHITE)
             }
         }
-        img_qr_code.setImageBitmap(bitmap)
+        return bitmap
     }
 }
