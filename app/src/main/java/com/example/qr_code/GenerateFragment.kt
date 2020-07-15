@@ -26,6 +26,7 @@ class GenerateFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        (context as MainActivity).permission()
         btn_convert.setOnClickListener {
             if (ed_input.text.isEmpty())
                 Toast.makeText(context, "請輸入文字", Toast.LENGTH_SHORT).show()
