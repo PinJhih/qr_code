@@ -6,6 +6,8 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Message
 import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
@@ -37,9 +39,17 @@ class GenerateFragment : Fragment() {
                 Toast.makeText(context, "請輸入文字", Toast.LENGTH_SHORT).show()
             else {
                 val size = (screenSize() * 0.9).toInt()
-                img_qr_code.setImageBitmap(
-                    generateQRCode(size)
-                )
+                var bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+                val handler = Handler {
+                    img_qr_code.setImageBitmap(bitmap)
+                    true
+                }
+                Thread(Runnable {
+                    bitmap = generateQRCode(size)
+                    val msg = Message()
+                    msg.what = 0
+                    handler.sendMessage(msg)
+                }).start()
             }
         }
         img_qr_code.setOnClickListener {
@@ -49,10 +59,17 @@ class GenerateFragment : Fragment() {
                 .setNegativeButton("否") { _, _ -> }
                 .setPositiveButton("是") { _, _ ->
                     try {
-                        val bitmap = generateQRCode(1024)
-                        saveQRCode(bitmap)
-                        Toast.makeText(context, "儲存成功", Toast.LENGTH_SHORT)
-                            .show()
+                        val handler = Handler {
+                            Toast.makeText(context, "儲存成功", Toast.LENGTH_SHORT).show()
+                            true
+                        }
+                        Thread(Runnable {
+                            val bitmap = generateQRCode(1024)
+                            saveQRCode(bitmap)
+                            val msg = Message()
+                            msg.what = 0
+                            handler.sendMessage(msg)
+                        }).start()
                     } catch (e: Exception) {
                         Toast.makeText(context, "儲存失敗", Toast.LENGTH_SHORT)
                             .show()
