@@ -1,9 +1,12 @@
 package com.example.qr_code
 
-import android.content.Context
+import android.content.ContentValues
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,7 +17,9 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import kotlinx.android.synthetic.main.fragment_generate.*
 import java.io.File
+import java.io.File.separator
 import java.io.FileOutputStream
+import java.io.OutputStream
 
 class GenerateFragment : Fragment() {
     override fun onCreateView(
@@ -80,12 +85,53 @@ class GenerateFragment : Fragment() {
     }
 
     private fun saveQRCode(bitmap: Bitmap) {
-        val title = "${System.currentTimeMillis()}"
-        var file = context!!.getDir("Images", Context.MODE_PRIVATE)
-        file = File(file, "$title.jpg")
-        val out = FileOutputStream(file)
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-        out.flush()
-        out.close()
+        if (android.os.Build.VERSION.SDK_INT >= 29) {
+            val content = getContentValues()
+            content.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/qr_code")
+            content.put(MediaStore.Images.Media.IS_PENDING, true)
+            val uri: Uri? =
+                context!!.contentResolver.insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    content
+                )
+            if (uri != null) {
+                saveImageToStream(bitmap, context!!.contentResolver.openOutputStream(uri))
+                content.put(MediaStore.Images.Media.IS_PENDING, false)
+                context!!.contentResolver.update(uri, content, null, null)
+            }
+        } else {
+            val dir =
+                File(Environment.getExternalStorageDirectory().toString() + separator + "qr_code")
+            if (!dir.exists()) {
+                dir.mkdirs()
+            }
+            val name = System.currentTimeMillis().toString() + ".png"
+            val file = File(dir, name)
+            saveImageToStream(bitmap, FileOutputStream(file))
+            val content = getContentValues()
+            content.put(MediaStore.Images.Media.DATA, file.absolutePath)
+            context!!.contentResolver.insert(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                content
+            )
+        }
+    }
+
+    private fun getContentValues(): ContentValues {
+        val values = ContentValues()
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+        values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000)
+        return values
+    }
+
+    private fun saveImageToStream(bitmap: Bitmap, outputStream: OutputStream?) {
+        if (outputStream != null) {
+            try {
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                outputStream.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }
